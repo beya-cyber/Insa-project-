@@ -87,7 +87,7 @@ export default function EvidenceDetailVisualizer() {
     <div className="min-h-screen bg-console-bg text-fg-primary font-sans pb-12">
       <TopBar
         title={
-          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-fg-primary hover:text-brand transition-colors font-mono">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-fg-primary hover:text-brand transition-colors font-mono cursor-pointer">
             <ArrowLeft className="h-4 w-4" /> {report.tracking_code}
           </button>
         }
@@ -104,9 +104,9 @@ export default function EvidenceDetailVisualizer() {
               <RiskBadge score={report.risk_score} />
             </div>
             <dl className="space-y-2.5 text-xs">
-              <Row label="Incident type" value={report.incident_type?.replaceAll('_', ' ')} />
-              <Row label="Scammer number" value={report.scammer_phone_number} mono />
-              <Row label="Destination account" value={report.scammer_identifier} mono />
+              <SummaryRow label="Incident type" value={report.incident_type?.replaceAll('_', ' ')} />
+              <SummaryRow label="Scammer number" value={report.scammer_phone_number} mono />
+              <SummaryRow label="Destination account" value={report.scammer_identifier} mono />
             </dl>
             <p className="text-xs text-fg-muted mt-4 leading-relaxed font-sans bg-console-bg/50 p-3 rounded border border-console-border/60">
               {report.description}
@@ -120,13 +120,13 @@ export default function EvidenceDetailVisualizer() {
               <h3 className="text-xs uppercase tracking-wider font-mono font-semibold text-fg-primary">Administrative directives</h3>
             </div>
             <div className="space-y-2 pt-1">
-              <Button variant="critical" className="w-full !justify-start font-mono text-xs" onClick={() => setFreezeModalOpen(true)}>
+              <Button variant="critical" className="w-full !justify-start font-mono text-xs cursor-pointer" onClick={() => setFreezeModalOpen(true)}>
                 <Lock className="h-3.5 w-3.5" /> Issue Account Lock
               </Button>
-              <Button variant="ghostDark" className="w-full !justify-start font-mono text-xs border border-console-border hover:border-brand/40" onClick={() => setSimModalOpen(true)}>
+              <Button variant="ghostDark" className="w-full !justify-start font-mono text-xs border border-console-border hover:border-brand/40 cursor-pointer" onClick={() => setSimModalOpen(true)}>
                 <PhoneOff className="h-3.5 w-3.5" /> Flag SIM/IMEI
               </Button>
-              <Button variant="ghostDark" className="w-full !justify-start font-mono text-xs border border-console-border hover:border-brand/40" onClick={() => navigate('/console/legal-export')}>
+              <Button variant="ghostDark" className="w-full !justify-start font-mono text-xs border border-console-border hover:border-brand/40 cursor-pointer" onClick={() => navigate('/console/legal-export')}>
                 <FileOutput className="h-3.5 w-3.5" /> Generate Legal Export
               </Button>
             </div>
@@ -142,8 +142,11 @@ export default function EvidenceDetailVisualizer() {
               {report.evidence_files?.map((ev, i) => (
                 <li key={ev.id}>
                   <button
-                    onClick={() => setActiveEvidence(i)}
-                    className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-mono flex items-center justify-between border transition-all ${i === activeEvidence
+                    onClick={() => {
+                      setActiveEvidence(i)
+                      setZoom(1) // Reset zoom on file switch
+                    }}
+                    className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-mono flex items-center justify-between border transition-all cursor-pointer ${i === activeEvidence
                       ? 'bg-brand/15 border-brand text-brand-light font-semibold shadow-glow'
                       : 'bg-console-bg/60 border-console-border text-fg-muted hover:border-fg-faint/40'
                       }`}
@@ -173,14 +176,14 @@ export default function EvidenceDetailVisualizer() {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setZoom((z) => Math.max(0.5, z - 0.2))}
-                  className="p-1 rounded hover:bg-console-surface-hover text-fg-muted hover:text-brand border border-console-border"
+                  className="p-1 rounded hover:bg-console-surface-hover text-fg-muted hover:text-brand border border-console-border cursor-pointer"
                 >
                   <ZoomOut className="h-3.5 w-3.5" />
                 </button>
                 <span className="font-mono text-[10px] text-fg-faint px-1">{Math.round(zoom * 100)}%</span>
                 <button
                   onClick={() => setZoom((z) => Math.min(2, z + 0.2))}
-                  className="p-1 rounded hover:bg-console-surface-hover text-fg-muted hover:text-brand border border-console-border"
+                  className="p-1 rounded hover:bg-console-surface-hover text-fg-muted hover:text-brand border border-console-border cursor-pointer"
                 >
                   <ZoomIn className="h-3.5 w-3.5" />
                 </button>
@@ -307,7 +310,7 @@ export default function EvidenceDetailVisualizer() {
   )
 }
 
-function Row({ label, value, mono }) {
+function SummaryRow({ label, value, mono }) {
   return (
     <div className="flex justify-between items-center gap-2">
       <dt className="text-fg-faint font-mono">{label}</dt>

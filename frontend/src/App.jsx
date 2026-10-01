@@ -1,5 +1,6 @@
+// src/App.jsx
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 
 // Public & Citizen Pages
 import CitizenIntakeWizard from './pages/public/CitizenIntakeWizard'
@@ -14,6 +15,18 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import PolicePortalDashboard from './pages/partners/PolicePortalDashboard'
 import PartnerDashboard from './pages/partners/PartnerDashboard'
 
+// Navigation Layout Component
+import ConsoleNavbar from './components/common/ConsoleNavbar'
+
+function StaffLayout() {
+  return (
+    <div className="min-h-screen bg-[#070d1d] text-slate-100">
+      <ConsoleNavbar />
+      <Outlet />
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <Router>
@@ -25,15 +38,17 @@ export default function App() {
         <Route path="/login" element={<StaffLogin />} />
         <Route path="/public-login" element={<LoginPage />} />
 
-        {/* Staff & RBAC Authentication */}
+        {/* Staff Login */}
         <Route path="/staff/login" element={<StaffLogin />} />
 
-        {/* Role Dashboards */}
-        <Route path="/analyst-dashboard" element={<AnalystDashboard />} />
-        <Route path="/bank-dashboard" element={<BankDashboard />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/police-dashboard" element={<PolicePortalDashboard />} />
-        <Route path="/partner-dashboard" element={<PartnerDashboard />} />
+        {/* Role Dashboards wrapped with the persistent navigation bar */}
+        <Route element={<StaffLayout />}>
+          <Route path="/analyst-dashboard" element={<AnalystDashboard />} />
+          <Route path="/bank-dashboard" element={<BankDashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/police-dashboard" element={<PolicePortalDashboard />} />
+          <Route path="/partner-dashboard" element={<PartnerDashboard />} />
+        </Route>
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

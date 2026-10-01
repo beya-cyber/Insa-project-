@@ -56,12 +56,15 @@ const INITIAL_CASES = [
     },
 ]
 
-export default function CaseTriageTable({ onSelectCase }) {
+export default function CaseTriageTable({ onSelectCase, onSelectionChange }) {
     const { user } = useAuth()
     const [cases, setCases] = useState(INITIAL_CASES)
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedCaseId, setSelectedCaseId] = useState(null)
     const [filterSeverity, setFilterSeverity] = useState('ALL')
+
+    // NEW: Bulk selection state
+    const [selectedRowIds, setSelectedRowIds] = useState([])
 
     // Clearance Check
     const isSupervisor = user?.role === ROLES.INSA_SUPERVISOR || user?.role === 'INSA Operations Supervisor'
@@ -79,6 +82,28 @@ export default function CaseTriageTable({ onSelectCase }) {
 
         return matchesSearch && matchesSeverity
     })
+
+    // Handle master select-all toggle
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            const allIds = filteredCases.map(c => c.id)
+            setSelectedRowIds(allIds)
+            if (onSelectionChange) onSelectionChange(allIds)
+        } else {
+            setSelectedRowIds([])
+            if (onSelectionChange) onSelectionChange([])
+        }
+    }
+
+    // Handle individual row checkbox toggle
+    const handleToggleRow = (id, e) => {
+        e.stopPropagation() // Prevent row click trigger
+        setSelectedRowIds(prev => {
+            const updated = prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+            if (onSelectionChange) onSelectionChange(updated)
+            return updated
+        })
+    }
 
     const handleRowClick = (caseItem) => {
         setSelectedCaseId(caseItem.id)
@@ -105,7 +130,7 @@ export default function CaseTriageTable({ onSelectCase }) {
                 <div>
                     <div className="flex items-center gap-2 font-mono text-[11px] text-brand uppercase tracking-widest">
                         <span className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse"></span>
-                        Triage Queue
+                        Triage Queue {selectedRowIds.length > 0 && `(${selectedRowIds.length} Selected)`}
                     </div>
                     <h2 className="heading text-lg font-bold text-fg-primary">ACTIVE INCIDENT FEED</h2>
                 </div>
@@ -141,6 +166,14 @@ export default function CaseTriageTable({ onSelectCase }) {
                 <table className="w-full console-table text-left border-collapse">
                     <thead>
                         <tr>
+                            <th className="w-10 text-center">
+                                <input
+                                    type="checkbox"
+                                    onChange={handleSelectAll}
+                                    checked={filteredCases.length > 0 && selectedRowIds.length === filteredCases.length}
+                                    className="rounded bg-console-bg border-console-border text-brand focus:ring-0 cursor-pointer"
+                                />
+                            </th>
                             <th>CASE IDENTIFIER</th>
                             <th>TIMESTAMP (UTC)</th>
                             <th>VICTIM BANK</th>
@@ -156,6 +189,7 @@ export default function CaseTriageTable({ onSelectCase }) {
                         <AnimatePresence>
                             {filteredCases.map((item) => {
                                 const isSelected = selectedCaseId === item.id
+                                const isRowChecked = selectedRowIds.includes(item.id)
                                 return (
                                     <motion.tr
                                         key={item.id}
@@ -163,9 +197,18 @@ export default function CaseTriageTable({ onSelectCase }) {
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
                                         onClick={() => handleRowClick(item)}
-                                        className={`cursor-pointer transition-colors ${isSelected ? 'bg-brand/10 border-l-2 border-l-brand' : 'hover:bg-console-surface/50'
-                                            }`}
+                                        className={`cursor-pointer transition-colors ${isSelected ? 'bg-brand/15 border-l-2 border-l-brand' : 'hover:bg-console-surface/50'}`}
                                     >
+                                        {/* Checkbox Column */}
+                                        <td className="text-center" onClick={(e) => e.stopPropagation()}>
+                                            <input
+                                                type="checkbox"
+                                                checked={isRowChecked}
+                                                onChange={(e) => handleToggleRow(item.id, e)}
+                                                className="rounded bg-console-bg border-console-border text-brand focus:ring-0 cursor-pointer"
+                                            />
+                                        </td>
+
                                         {/* Case ID */}
                                         <td className="font-mono font-bold text-fg-primary flex items-center gap-1.5">
                                             <span className="text-brand">#</span>
